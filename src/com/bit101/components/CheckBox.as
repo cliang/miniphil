@@ -28,8 +28,9 @@
  
 package com.bit101.components
 {
-	import flash.display.DisplayObjectContainer;
+	import flash.display.Bitmap;
 	import flash.display.Sprite;
+	import flash.events.Event;
 	import flash.events.MouseEvent;
 	
 	public class CheckBox extends Component
@@ -39,6 +40,10 @@ package com.bit101.components
 		protected var _label:Label;
 		protected var _labelText:String = "";
 		protected var _selected:Boolean = false;
+		protected var _hasBackSkin:Boolean;
+		protected var _backSkin:Bitmap;
+		protected var _hasButtonSkin:Boolean;
+		protected var _buttonSkin:Bitmap;
 		
 		
 		/**
@@ -49,14 +54,21 @@ package com.bit101.components
 		 * @param label String containing the label for this component.
 		 * @param defaultHandler The event handling function to handle the default event for this component (click in this case).
 		 */
-		public function CheckBox(parent:DisplayObjectContainer = null, xpos:Number = 0, ypos:Number =  0, label:String = "", defaultHandler:Function = null)
+		public function CheckBox(label:String = "", defaultHandler:Function = null)
 		{
 			_labelText = label;
-			super(parent, xpos, ypos);
 			if(defaultHandler != null)
 			{
 				addEventListener(MouseEvent.CLICK, defaultHandler);
 			}
+			this.addEventListener(Event.ADDED_TO_STAGE,onadded);
+			super();
+		}
+		
+		public function onadded(e:Event):void{
+			this.removeEventListener(Event.ADDED_TO_STAGE,onadded);
+			this.addChildren();
+			this.draw();
 		}
 		
 		/**
@@ -64,7 +76,9 @@ package com.bit101.components
 		 */
 		override protected function init():void
 		{
-			super.init();
+			_back = new Sprite();
+			_button = new Sprite();
+			_label = new Label(_labelText);
 			buttonMode = true;
 			useHandCursor = true;
 			mouseChildren = false;
@@ -75,18 +89,31 @@ package com.bit101.components
 		 */
 		override protected function addChildren():void
 		{
-			_back = new Sprite();
 			_back.filters = [getShadow(2, true)];
+			if(this._hasBackSkin){
+				_back.addChild(this._backSkin);
+			}
+			else {
+				_back.graphics.clear();
+				_back.graphics.beginFill(Style.BACKGROUND);
+				_back.graphics.drawRect(0, 0, 10, 10);
+				_back.graphics.endFill();
+			}
 			addChild(_back);
 			
-			_button = new Sprite();
 			_button.filters = [getShadow(1)];
 			_button.visible = false;
+			if(this._hasButtonSkin){
+				_back.addChild(this._buttonSkin);
+			}
+			else {
+				_button.graphics.clear();
+				_button.graphics.beginFill(Style.BUTTON_FACE);
+				_button.graphics.drawRect(2, 2, 6, 6);
+			}
 			addChild(_button);
 			
-			_label = new Label(_labelText);
 			addChild(_label);
-			draw();
 			
 			addEventListener(MouseEvent.CLICK, onClick);
 		}
@@ -104,14 +131,6 @@ package com.bit101.components
 		override public function draw():void
 		{
 			super.draw();
-			_back.graphics.clear();
-			_back.graphics.beginFill(Style.BACKGROUND);
-			_back.graphics.drawRect(0, 0, 10, 10);
-			_back.graphics.endFill();
-			
-			_button.graphics.clear();
-			_button.graphics.beginFill(Style.BUTTON_FACE);
-			_button.graphics.drawRect(2, 2, 6, 6);
 			
 			_label.text = _labelText;
 			_label.draw();
@@ -179,6 +198,21 @@ package com.bit101.components
 			super.enabled = value;
 			mouseChildren = false;
 		}
+
+		public function set backSkin(value:Bitmap):void
+		{
+			if(!value)return;
+			_hasBackSkin = true;
+			_backSkin = value;
+		}
+
+		public function set backButtonSkin(value:Bitmap):void
+		{
+			if(!value)return;
+			_hasButtonSkin = true;
+			_buttonSkin = value;
+		}
+
 
 	}
 }

@@ -84,7 +84,9 @@ package
 			window.closeButton.sizeNoScale = true;
 			//window.minimized = true;
 			
-			new CheckBox(stage,20,300,"好的",mouseHandler);
+			var checkBox:CheckBox  = new CheckBox("好的",mouseHandler);
+			checkBox.move(20,300);
+			addChild(checkBox);
 		}
 		
 		private function mouseHandler(e):void  
