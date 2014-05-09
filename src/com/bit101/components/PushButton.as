@@ -47,9 +47,14 @@ package com.bit101.components
 		protected var _down:Boolean = false;
 		protected var _selected:Boolean = false;
 		protected var _toggle:Boolean = false;
+		//实际使用的皮肤
 		protected var _defaultSkin:Bitmap;
 		protected var _downSkin:Bitmap;
 		protected var _overSkin:Bitmap;
+		//默认的皮肤bmd
+		protected var _defaultSkinData:BitmapData;
+		protected var _downSkinData:BitmapData;
+		protected var _overSkinData:BitmapData;
 		protected var _skinSp:Sprite;
 		protected var _isSkin:Boolean;
 		protected var _sizeNoScale:Boolean;
@@ -76,6 +81,7 @@ package com.bit101.components
 			}
 			this._labelText = label;//原来this._label= label;触发draw
 			this.addEventListener(Event.ADDED_TO_STAGE,onadded);
+			super();
 		}
 		
 		public function onadded(e:Event):void{
@@ -159,12 +165,15 @@ package com.bit101.components
 		private function changeSize():void{
 			if(_sizeNoScale){//此处是不拉伸的情况下进行大小改变
 				if(_defaultSkin){
+					_defaultSkin.bitmapData = _defaultSkinData;
 					changeSizeNoScale(_defaultSkin);
 				}
 				if(_downSkin){
+					_downSkin.bitmapData = _downSkinData;
 					changeSizeNoScale(_downSkin);
 				}
 				if(_overSkin){
+					_overSkin.bitmapData = _overSkinData;
 					changeSizeNoScale(_overSkin);
 				}
 			}
@@ -182,10 +191,8 @@ package com.bit101.components
 			else if(_over&&_overSkin){
 				_skinSp.removeChildren();
 				_skinSp.addChild(_overSkin);
-				trace("over",_overSkin);
 			}
 			else{
-				trace("over2");
 				_skinSp.removeChildren();
 				_skinSp.addChild(_defaultSkin);
 			}
@@ -234,6 +241,7 @@ package com.bit101.components
 		
 		public function allSkin(bm:Bitmap,num:int = 4):void{
 			if(!bm) return;
+			if(num<1||num>4) num = 4;
 			_stateNum = num;
 			_isSkin = true;
 			
@@ -242,16 +250,19 @@ package com.bit101.components
 				_defaultSkin = new Bitmap();
 				_defaultSkin.bitmapData = new BitmapData(bm.width/num, bm.height);
 				_defaultSkin.bitmapData.copyPixels(bm.bitmapData,new Rectangle(0 , 0, bm.width/num, bm.height),point);
+				_defaultSkinData = _defaultSkin.bitmapData;
 			}
 			if(num>=2){
 				_downSkin = new Bitmap();
 				_downSkin.bitmapData = new BitmapData(bm.width/num, bm.height);
 				_downSkin.bitmapData.copyPixels(bm.bitmapData,new Rectangle(bm.width/num , 0, bm.width/num, bm.height),point);
+				_downSkinData = _downSkin.bitmapData;
 			}
 			if(num>=3){
 				_overSkin = new Bitmap();
 				_overSkin.bitmapData = new BitmapData(bm.width/num, bm.height);
 				_overSkin.bitmapData.copyPixels(bm.bitmapData,new Rectangle(bm.width/num * 2 , 0, bm.width/num, bm.height),point);
+				_overSkinData = _overSkin.bitmapData;
 			}
 			
 		}
@@ -374,6 +385,7 @@ package com.bit101.components
 		public function set defaultSkin(value:Bitmap):void
 		{
 			_isSkin = true;
+			_defaultSkinData = value.bitmapData;
 			_stateNum = 0;
 			_stateNum++;
 			var point:Point = new Point();
@@ -384,20 +396,22 @@ package com.bit101.components
 
 		public function set downSkin(value:Bitmap):void
 		{
+			_downSkinData = value.bitmapData;
 			_stateNum++;
 			var point:Point = new Point();
-			_defaultSkin = new Bitmap();
-			_defaultSkin.bitmapData = new BitmapData(value.width,value.height);
-			_defaultSkin.bitmapData.copyPixels(value.bitmapData,new Rectangle(0 , 0, value.width, value.height),point);
+			_downSkin = new Bitmap();
+			_downSkin.bitmapData = new BitmapData(value.width,value.height);
+			_downSkin.bitmapData.copyPixels(value.bitmapData,new Rectangle(0 , 0, value.width, value.height),point);
 		}
 
 		public function set overSkin(value:Bitmap):void
 		{
+			_overSkinData = value.bitmapData;
 			_stateNum++;
 			var point:Point = new Point();
-			_defaultSkin = new Bitmap();
-			_defaultSkin.bitmapData = new BitmapData(value.width,value.height);
-			_defaultSkin.bitmapData.copyPixels(value.bitmapData,new Rectangle(0 , 0, value.width, value.height),point);
+			_overSkin = new Bitmap();
+			_overSkin.bitmapData = new BitmapData(value.width,value.height);
+			_overSkin.bitmapData.copyPixels(value.bitmapData,new Rectangle(0 , 0, value.width, value.height),point);
 		}
 
 		public function get sizeNoScale():Boolean
@@ -408,6 +422,7 @@ package com.bit101.components
 		public function set sizeNoScale(value:Boolean):void
 		{
 			_sizeNoScale = value;
+			this.invalidate();
 		}
 
 		public function get textFormate():TextFormat

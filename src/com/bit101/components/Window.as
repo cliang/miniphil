@@ -57,8 +57,19 @@ package com.bit101.components
 		protected var _hasCloseButton:Boolean;
 		protected var _closeButton:PushButton;
 		protected var _grips:Shape;
-		protected var _panelSkin:Bitmap;
-		protected var _hasPanelSkin:Boolean;
+		protected var _gripsVisible:Boolean;
+		protected var _titlePanelSkin:Bitmap;
+		protected var _contantPanelSkin:Bitmap;
+		protected var _allCloseButtonSkin:Bitmap;
+		protected var _defaultCloseButtonSkin:Bitmap;
+		protected var _downCloseButtonSkin:Bitmap;
+		protected var _overCloseButtonSkin:Bitmap;
+		protected var _hasTitlePanelSkin:Boolean;
+		protected var _hasContantPanelSkin:Boolean;
+		protected var _hasCloseButtonSkin:Boolean;
+		protected var _titleHeight:uint;
+		protected var _minimizeSkin:Bitmap;
+		protected var _hasMinimizeSkin:Boolean;
 		
 		/**
 		 * Constructor
@@ -67,10 +78,17 @@ package com.bit101.components
 		 * @param ypos The y position to place this component.
 		 * @param title The string to display in the title bar.
 		 */
-		public function Window(parent:DisplayObjectContainer=null, xpos:Number=0, ypos:Number=0, title:String="Window")
+		public function Window(title:String="Window")
 		{
 			_title = title;
-			super(parent, xpos, ypos);
+			this.addEventListener(Event.ADDED_TO_STAGE,onadded);
+			super();
+		}
+		
+		public function onadded(e:Event):void{
+			this.removeEventListener(Event.ADDED_TO_STAGE,onadded);
+			this.addChildren();
+			this.draw();
 		}
 		
 		/**
@@ -78,8 +96,12 @@ package com.bit101.components
 		 */
 		override protected function init():void
 		{
-			super.init();
-			setSize(100, 100);
+			_titleBar = new Panel();
+			_titleLabel = new Label(_title);
+			_grips = new Shape();
+			_panel = new Panel();
+			_minimizeButton = new Sprite();
+			_closeButton = new PushButton("", onClose);
 		}
 		
 		/**
@@ -87,20 +109,23 @@ package com.bit101.components
 		 */
 		override protected function addChildren():void
 		{
-			_titleBar = new Panel();
 			_titleBar.filters = [];
 			_titleBar.buttonMode = true;
 			_titleBar.useHandCursor = true;
 			_titleBar.addEventListener(MouseEvent.MOUSE_DOWN, onMouseGoDown);
-			_titleBar.height = 20;
-			if(this.hasPanelSkin){
-				_titleBar.sizeNoScale = true;
-				_titleBar.backgroundSkin = this._panelSkin;
+			if(_titleHeight == 0){
+				if(this._hasTitlePanelSkin)
+					_titleHeight = this._titlePanelSkin.height;
+				else _titleHeight = 20;
+			}
+			if(this._width == 0){
+				if(this._hasTitlePanelSkin)
+					_width = this._titlePanelSkin.width;
+				else _width = 100;
 			}
 			super.addChild(_titleBar);
-			_titleLabel = new Label(_titleBar.content, 5, 1, _title);
+			_titleBar.height = _titleHeight;//此处是个bug在前面写会变成100…… 额
 			
-			_grips = new Shape();
 			for(var i:int = 0; i < 4; i++)
 			{
 				_grips.graphics.lineStyle(1, 0xffffff, .55);
@@ -111,34 +136,54 @@ package com.bit101.components
 				_grips.graphics.lineTo(100, 4 + i * 4);
 			}
 			_titleBar.content.addChild(_grips);
-			_grips.visible = false;
+			_grips.visible = _gripsVisible;
 			
 			//_panel作为容器contant
-			_panel = new Panel();
-			_panel.move(0, 20);
+			_panel.move(0, _titleHeight);
+			if(this._height == 0){
+				if(this._hasContantPanelSkin)
+					_height = this._contantPanelSkin.height + _titleHeight;
+				else _height = 100;
+			}
 			_panel.visible = !_minimized;
 			super.addChild(_panel);
 			
-			_minimizeButton = new Sprite();
-			_minimizeButton.graphics.beginFill(0, 0);
-			_minimizeButton.graphics.drawRect(-10, -10, 20, 20);
-			_minimizeButton.graphics.endFill();
-			_minimizeButton.graphics.beginFill(0, .35);
-			_minimizeButton.graphics.moveTo(-5, -3);
-			_minimizeButton.graphics.lineTo(5, -3);
-			_minimizeButton.graphics.lineTo(0, 4);
-			_minimizeButton.graphics.lineTo(-5, -3);
-			_minimizeButton.graphics.endFill();
-			_minimizeButton.x = 10;
-			_minimizeButton.y = 10;
+			//绘制了一个箭头
+			if(!_hasMinimizeSkin){
+				_minimizeButton.graphics.beginFill(0, 0);
+				_minimizeButton.graphics.drawRect(-10, -10, 20, 20);
+				_minimizeButton.graphics.endFill();
+				_minimizeButton.graphics.beginFill(0, .35);
+				_minimizeButton.graphics.moveTo(-5, -3);
+				_minimizeButton.graphics.lineTo(5, -3);
+				_minimizeButton.graphics.lineTo(0, 4);
+				_minimizeButton.graphics.lineTo(-5, -3);
+				_minimizeButton.graphics.endFill();
+			}
+			else {
+				_minimizeSkin.x = -_minimizeSkin.width/2;
+				_minimizeSkin.y = -_minimizeSkin.height/2;
+				_minimizeButton.addChild(_minimizeSkin);
+			}
+			_minimizeButton.x = _titleHeight/2;
+			_minimizeButton.y = _titleHeight/2;
 			_minimizeButton.useHandCursor = true;
 			_minimizeButton.buttonMode = true;
 			_minimizeButton.addEventListener(MouseEvent.CLICK, onMinimize);
+			if(this.hasMinimizeButton)
+			super.addChild(_minimizeButton);
 			
-			_closeButton = new PushButton("", onClose);
-			_closeButton.move(86,6);
-			this.addChild(_closeButton);
-			_closeButton.setSize(8, 8);
+			//添加标题
+			_titleLabel.move(_minimizeSkin.width/2 + _minimizeButton.width/2 + 5, 1);
+			_titleBar.content.addChild(_titleLabel);
+			
+			if(_closeButton.width == 0|| _closeButton.height == 0){
+				if(!this._hasCloseButton)
+					_closeButton.setSize(8, 8);
+			}
+			if(_closeButton.x == 0&&_closeButton.y == 0)
+				_closeButton.move(_width- _closeButton.width - (_titleHeight - _closeButton.height)/2,(_titleHeight - _closeButton.height)/2);
+			else _closeButton.move(86,6);
 			
 			filters = [getShadow(4, false)];
 		}
@@ -175,9 +220,10 @@ package com.bit101.components
 			_panel.color = _color;
 			_titleBar.width = width;
 			_titleBar.draw();
-			_titleLabel.x = _hasMinimizeButton ? 20 : 5;
-			_closeButton.x = _width - 14;
+			_titleLabel.x = _hasMinimizeButton ? (_minimizeSkin.width/2 + _minimizeButton.width/2+5) : 5;
+			_closeButton.move(_width- _closeButton.width - (_titleHeight - _closeButton.height)/2,(_titleHeight - _closeButton.height)/2);
 			_grips.x = _titleLabel.x + _titleLabel.width;
+			_grips.y = (_titleHeight - _grips.height)/2 - 3;//3是一个偏移 由于_grips的绘图造成的
 			if(_hasCloseButton)
 			{
 				_grips.width = _closeButton.x - _grips.x - 2;
@@ -186,7 +232,8 @@ package com.bit101.components
 			{
 				_grips.width = _width - _grips.x - 2;
 			}
-			_panel.setSize(_width, _height - 20);
+			_grips.visible = _gripsVisible;
+			_panel.setSize(_width, _height - _titleHeight);
 			_panel.draw();
 		}
 
@@ -228,6 +275,16 @@ package com.bit101.components
 		protected function onClose(event:MouseEvent):void
 		{
 			dispatchEvent(new Event(Event.CLOSE));
+		}
+		
+		public function allCloseButtonSkin(value:Bitmap,num:uint = 4):void
+		{
+			_hasCloseButtonSkin = true;
+			var point:Point = new Point();
+			_allCloseButtonSkin = new Bitmap();
+			_allCloseButtonSkin.bitmapData = new BitmapData(value.width,value.height);
+			_allCloseButtonSkin.bitmapData.copyPixels(value.bitmapData,new Rectangle(0 , 0, value.width, value.height),point);
+			_closeButton.allSkin(this._allCloseButtonSkin,num);
 		}
 		
 		///////////////////////////////////
@@ -324,7 +381,7 @@ package com.bit101.components
 		}
 		
 		/**
-		 * Gets / sets whether the window is closed. A closed window will only show its title bar.
+		 *   控制面版的显示（通过小箭头）
 		 */
 		public function set minimized(value:Boolean):void
 		{
@@ -399,23 +456,90 @@ package com.bit101.components
 		/**
 		 * Returns a reference to the shape showing the grips on the title bar. Can be used to do custom drawing or turn them invisible.
 		 */		
-		public function get grips():Shape
+		public function set gripsVisible(value:Boolean):void
 		{
-			return _grips;
+			_gripsVisible = true;
 		}
 
-		public function set panelSkin(value:Bitmap):void
+		public function set titlePanelSkin(value:Bitmap):void
 		{
-			_hasPanelSkin = true;
+			_hasTitlePanelSkin = true;
 			var point:Point = new Point();
-			_panelSkin = new Bitmap();
-			_panelSkin.bitmapData = new BitmapData(value.width,value.height);
-			_panelSkin.bitmapData.copyPixels(value.bitmapData,new Rectangle(0 , 0, value.width, value.height),point);
+			_titlePanelSkin = new Bitmap();
+			_titlePanelSkin.bitmapData = new BitmapData(value.width,value.height);
+			_titlePanelSkin.bitmapData.copyPixels(value.bitmapData,new Rectangle(0 , 0, value.width, value.height),point);
+			_titleBar.sizeNoScale = true;
+			_titleBar.backgroundSkin = this._titlePanelSkin;
+		}
+		
+		public function set contantPanelSkin(value:Bitmap):void
+		{
+			_hasContantPanelSkin = true;
+			var point:Point = new Point();
+			_contantPanelSkin = new Bitmap();
+			_contantPanelSkin.bitmapData = new BitmapData(value.width,value.height);
+			_contantPanelSkin.bitmapData.copyPixels(value.bitmapData,new Rectangle(0 , 0, value.width, value.height),point);
+			_panel.sizeNoScale = true;
+			_panel.backgroundSkin = this._contantPanelSkin;
 		}
 
-		public function get hasPanelSkin():Boolean
+		public function get hasTitlePanelSkin():Boolean
 		{
-			return _hasPanelSkin;
+			return _hasTitlePanelSkin;
+		}
+		
+		public function get hasContantPanelSkin():Boolean
+		{
+			return _hasContantPanelSkin;
+		}
+
+		public function get titleHeight():uint
+		{
+			return _titleHeight;
+		}
+
+		public function set titleHeight(value:uint):void
+		{
+			_titleHeight = value;
+		}
+
+		public function set defaultCloseButtonSkin(value:Bitmap):void
+		{
+			_defaultCloseButtonSkin = value;
+		}
+
+		public function set downCloseButtonSkin(value:Bitmap):void
+		{
+			_downCloseButtonSkin = value;
+		}
+
+		public function set overCloseButtonSkin(value:Bitmap):void
+		{
+			_overCloseButtonSkin = value;
+		}
+
+		public function get hasCloseButtonSkin():Boolean
+		{
+			return _hasCloseButtonSkin;
+		}
+
+		public function get closeButton():PushButton
+		{
+			return _closeButton;
+		}
+
+		public function set closeButton(value:PushButton):void
+		{
+			_closeButton = value;
+		}
+
+		public function set minimizeSkin(value:Bitmap):void
+		{
+			_hasMinimizeSkin = true;
+			var point:Point = new Point();
+			_minimizeSkin = new Bitmap();
+			_minimizeSkin.bitmapData = new BitmapData(value.width,value.height);
+			_minimizeSkin.bitmapData.copyPixels(value.bitmapData,new Rectangle(0 , 0, value.width, value.height),point);
 		}
 
 

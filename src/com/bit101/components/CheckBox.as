@@ -84,7 +84,8 @@ package com.bit101.components
 			_button.visible = false;
 			addChild(_button);
 			
-			_label = new Label(this, 0, 0, _labelText);
+			_label = new Label(_labelText);
+			addChild(_label);
 			draw();
 			
 			addEventListener(MouseEvent.CLICK, onClick);

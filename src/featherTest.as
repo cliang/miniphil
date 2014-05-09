@@ -1,6 +1,6 @@
 package
 {
-	import com.bit101.components.Accordion;
+	import com.bit101.components.CheckBox;
 	import com.bit101.components.Panel;
 	import com.bit101.components.PushButton;
 	import com.bit101.components.Style;
@@ -8,7 +8,6 @@ package
 	
 	import flash.display.Bitmap;
 	import flash.events.Event;
-	import flash.events.MouseEvent;
 	
 	import lzm.starling.STLStarup;
 	
@@ -21,6 +20,12 @@ package
 		private var Btn:Class;
 		[Embed(source = "btn0.png")]
 		private var Back:Class;
+		[Embed(source = "btn.png")]
+		private var Title:Class;
+		[Embed(source = "btnClose.png")]
+		private var BtnClose:Class;
+		[Embed(source = "arrow.png")]
+		private var Arrow:Class;
 		
 		
 		private var myStarling:Starling;   
@@ -43,34 +48,43 @@ package
 			Style.fontSize = 12;  
 			//要使用中文就要将嵌入字体设为false  
 			Style.embedFonts = false;  
-			Style.BACKGROUND = 0xFF0000;  
-			Style.BUTTON_FACE = 0xCCCCFF;  
+			//Style.BACKGROUND = 0xFF0000;  
+			//Style.BUTTON_FACE = 0xCCCCFF;  
 			Style.LABEL_TEXT = 0xFF0000;
 			
 			btn = new PushButton("测adsgadgadgadgagasd试",mouseHandler);  
 			btn.move(stage.stageWidth >> 1,stage.stageHeight >> 1);
 			btn.allSkin(new Btn as Bitmap,4);
 			btn.sizeNoScale = true;
-			btn.width = 430;
-			btn.height = 206;
+			btn.setSize(200,100);
 			this.addChild(btn);
 			
-			var acc:Accordion = new Accordion(stage,100,100);
-			acc.panelSkin = new Back as Bitmap;
+			//var acc:Accordion = new Accordion(stage,100,100);
+			//acc.panelSkin = new Back as Bitmap;
 			
 			var panel:Panel = new Panel();
 			panel.sizeNoScale = true;
-			panel.width = 300;
-			panel.height = 300;
+			panel.width = 100;
+			panel.height = 100;
 			panel.backgroundSkin = new Back as Bitmap;
 			addChild(panel);
 			
-			var window:Window = new Window(this,500,50,"jhehehsadga");
-			//window.panelSkin = this._panelSkin;
-			window.grips.visible = false;
-			window.draggable = false;
+			var window:Window = new Window("jadga");
+			window.move(500,50);
+			window.contantPanelSkin = new Back as Bitmap;//
+			window.titlePanelSkin = new Title as Bitmap;//
+			window.gripsVisible = true;
+			window.draggable = true;
+			window.hasCloseButton = true;
+			window.hasMinimizeButton = true;
+			window.minimizeSkin = new Arrow as Bitmap;
+			window.allCloseButtonSkin(new BtnClose as Bitmap);
 			window.addEventListener(Event.SELECT, mouseHandler);
+			addChild(window);
+			window.closeButton.sizeNoScale = true;
 			//window.minimized = true;
+			
+			new CheckBox(stage,20,300,"好的",mouseHandler);
 		}
 		
 		private function mouseHandler(e):void  

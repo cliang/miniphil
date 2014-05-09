@@ -24,6 +24,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
+ * 面板  一张背景  一个空容器  一个遮罩层  没有然后了
  */
  
 package com.bit101.components
@@ -38,7 +39,7 @@ package com.bit101.components
 	
 	public class Panel extends Component
 	{
-		protected var _mask:Sprite;//没发现有时用处
+		protected var _mask:Sprite;
 		protected var _background:Sprite;
 		protected var _color:int = -1;
 		protected var _shadow:Boolean = true;
@@ -46,6 +47,7 @@ package com.bit101.components
 		protected var _showGrid:Boolean = false;
 		protected var _gridColor:uint = 0xd0d0d0;
 		protected var _backgroundSkin:Bitmap;
+		protected var _backgroundSkinData:BitmapData;
 		protected var _hasSkin:Boolean;
 		protected var _sizeNoScale:Boolean;
 		
@@ -168,6 +170,7 @@ package com.bit101.components
 		
 		private function changeSize():void{
 			if(_sizeNoScale&&_backgroundSkin){//此处是不拉伸的情况下进行大小改变
+				_backgroundSkin.bitmapData = _backgroundSkinData;
 				changeSizeNoScale(_backgroundSkin);
 			}
 			else {
@@ -278,6 +281,8 @@ package com.bit101.components
 		public function set backgroundSkin(value:Bitmap):void
 		{
 			_hasSkin = Boolean(value);
+			if(!_hasSkin) return;
+			_backgroundSkinData = value.bitmapData;
 			var point:Point = new Point();
 			_backgroundSkin = new Bitmap();
 			_backgroundSkin.bitmapData = new BitmapData(value.width,value.height);
