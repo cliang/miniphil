@@ -26,7 +26,10 @@ package
 		private var BtnClose:Class;
 		[Embed(source = "arrow.png")]
 		private var Arrow:Class;
-		
+		[Embed(source = "gou.png")]
+		private var Gou:Class;
+		[Embed(source = "back.png")]
+		private var Back2:Class;
 		
 		private var myStarling:Starling;   
 		
@@ -86,6 +89,9 @@ package
 			
 			var checkBox:CheckBox  = new CheckBox("好的",mouseHandler);
 			checkBox.move(20,300);
+			checkBox.setSize(200,100);
+			checkBox.backSkin = new Back2 as Bitmap;
+			checkBox.buttonSkin = new Gou as Bitmap;
 			addChild(checkBox);
 		}
 		

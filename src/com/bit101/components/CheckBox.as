@@ -104,7 +104,7 @@ package com.bit101.components
 			_button.filters = [getShadow(1)];
 			_button.visible = false;
 			if(this._hasButtonSkin){
-				_back.addChild(this._buttonSkin);
+				_button.addChild(this._buttonSkin);
 			}
 			else {
 				_button.graphics.clear();
@@ -134,8 +134,14 @@ package com.bit101.components
 			
 			_label.text = _labelText;
 			_label.draw();
-			_label.x = 12;
-			_label.y = (10 - _label.height) / 2;
+			if(!this._hasBackSkin){
+				_label.x = 12;
+				_label.y = (10 - _label.height) / 2;
+			}
+			else {
+				_label.x = _backSkin.width + 5;
+				_label.y = _backSkin.height/2 -  _label.height/2;
+			}
 			_width = _label.width + 12;
 			_height = 10;
 		}
@@ -206,7 +212,7 @@ package com.bit101.components
 			_backSkin = value;
 		}
 
-		public function set backButtonSkin(value:Bitmap):void
+		public function set buttonSkin(value:Bitmap):void
 		{
 			if(!value)return;
 			_hasButtonSkin = true;
