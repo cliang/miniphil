@@ -26,9 +26,13 @@
  
 package com.bit101.components
 {
+	import flash.display.Bitmap;
+	import flash.display.BitmapData;
 	import flash.display.DisplayObjectContainer;
 	import flash.display.Sprite;
 	import flash.events.Event;
+	import flash.geom.Point;
+	import flash.geom.Rectangle;
 	import flash.text.TextField;
 	import flash.text.TextFieldType;
 	import flash.text.TextFormat;
@@ -39,6 +43,17 @@ package com.bit101.components
 		protected var _password:Boolean = false;
 		protected var _text:String = "";
 		protected var _tf:TextField;
+		protected var _boxSkin:Bitmap;
+		protected var _boxSkinData:BitmapData;
+		protected var _hasSkin:Boolean;
+		protected var _defaultHandler:Function;
+		protected var _sizeNoScale:Boolean;
+		protected var _showMode:String;
+		protected var _changeByTextheight:Boolean = true;//外框的高度更随文字的高度改变   在_showMode为多行的时候可用
+		protected var _defaultHeight:int;
+		
+		public static var ONELINE:String = "oneline";//单行输入
+		public static var WRAPLINE:String = "wrapline";//多行输入（自动换行）
 		
 		/**
 		 * Constructor
@@ -48,14 +63,17 @@ package com.bit101.components
 		 * @param text The string containing the initial text of this component.
 		 * @param defaultHandler The event handling function to handle the default event for this component (change in this case).
 		 */
-		public function InputText(parent:DisplayObjectContainer = null, xpos:Number = 0, ypos:Number =  0, text:String = "", defaultHandler:Function = null)
+		public function InputText(text:String = "", defaultHandler:Function = null)
 		{
 			this.text = text;
-			super(parent, xpos, ypos);
-			if(defaultHandler != null)
-			{
-				addEventListener(Event.CHANGE, defaultHandler);
-			}
+			_defaultHandler = defaultHandler;
+			this.addEventListener(Event.ADDED_TO_STAGE,onadded);
+		}
+		
+		private function onadded(e:Event):void{
+			this.removeEventListener(Event.ADDED_TO_STAGE,onadded);
+			this.addChildren();
+			this.draw();
 		}
 		
 		/**
@@ -63,8 +81,8 @@ package com.bit101.components
 		 */
 		override protected function init():void
 		{
-			super.init();
-			setSize(100, 16);
+			_back = new Sprite();
+			_tf = new TextField();
 		}
 		
 		/**
@@ -72,18 +90,26 @@ package com.bit101.components
 		 */
 		override protected function addChildren():void
 		{
-			_back = new Sprite();
+			if(_defaultHandler != null)
+			{
+				addEventListener(Event.CHANGE, _defaultHandler);
+			}
+			
+			if(this._hasSkin == false)
+				this.setSize(100,16);
+			else if(this._width==0||this._height==0)
+				this.setSize(_boxSkin.width,_boxSkin.height);
+			_defaultHeight = height;
+			
 			_back.filters = [getShadow(2, true)];
 			addChild(_back);
 			
-			_tf = new TextField();
 			_tf.embedFonts = Style.embedFonts;
 			_tf.selectable = true;
 			_tf.type = TextFieldType.INPUT;
 			_tf.defaultTextFormat = new TextFormat(Style.fontName, Style.fontSize, Style.INPUT_TEXT);
 			addChild(_tf);
 			_tf.addEventListener(Event.CHANGE, onChange);
-			
 		}
 		
 		
@@ -99,10 +125,18 @@ package com.bit101.components
 		override public function draw():void
 		{
 			super.draw();
-			_back.graphics.clear();
-			_back.graphics.beginFill(Style.BACKGROUND);
-			_back.graphics.drawRect(0, 0, _width, _height);
-			_back.graphics.endFill();
+			if(this._hasSkin == false){
+				_back.graphics.clear();
+				_back.graphics.beginFill(Style.BACKGROUND);
+				_back.graphics.drawRect(0, 0, _width, _height);
+				_back.graphics.endFill();
+			}
+			else if(_boxSkin){
+				_back.addChild(_boxSkin);
+			}
+			
+			if(_boxSkin.width!=_width||_boxSkin.height!=_height)
+				changeSize();
 			
 			_tf.displayAsPassword = _password;
 			
@@ -114,22 +148,44 @@ package com.bit101.components
 			{
 				_tf.text = "";
 			}
-			_tf.width = _width - 4;
-			if(_tf.text == "")
-			{
-				_tf.text = "X";
-				_tf.height = Math.min(_tf.textHeight + 4, _height);
-				_tf.text = "";
+			if(_showMode == ONELINE){
+				if(_tf.x == 0)
+					_tf.x = 2;
+				_tf.width = _width - _tf.x*2;
+				if(_tf.text == "")
+				{
+					_tf.text = "X";
+					_tf.height = Math.min(_tf.textHeight + 4, _height);
+					_tf.text = "";
+				}
+				else
+				{
+					_tf.height = Math.min(_tf.textHeight + 4, _height);
+				}
+				_tf.wordWrap = false;
+				_tf.y = Math.round(_height / 2 - _tf.height / 2);
 			}
-			else
-			{
-				_tf.height = Math.min(_tf.textHeight + 4, _height);
+			else if(_showMode == WRAPLINE){
+				_tf.wordWrap = true;
+				if(_tf.x == 0)
+					_tf.x = 2;
+				if(_tf.y == 0)
+					_tf.y = 2;
+				_tf.width = _width - _tf.x*2;
+				_tf.height = _height - _tf.y*2;
 			}
-			_tf.x = 2;
-			_tf.y = Math.round(_height / 2 - _tf.height / 2);
 		}
 		
-		
+		private function changeSize():void{
+			if(_sizeNoScale&&_boxSkin){//此处是不拉伸的情况下进行大小改变
+				_boxSkin.bitmapData = _boxSkinData;
+				changeSizeNoScale(_boxSkin);
+			}
+			else {
+				_boxSkin.width =_width;
+				_boxSkin.height =_height;
+			}
+		}
 		
 		
 		///////////////////////////////////
@@ -145,6 +201,12 @@ package com.bit101.components
 			_text = _tf.text;
 			event.stopImmediatePropagation();
 			dispatchEvent(event);
+			
+			if(_tf.textHeight + _tf.y*2 > height&&changeByTextheight)
+				height = _tf.textHeight + _tf.y*2 + 4;
+			else if(_tf.textHeight + _tf.y*2 < height&&changeByTextheight&&height>_defaultHeight)
+				height = _tf.textHeight + _tf.y*2 + 4;
+				if(height<_defaultHeight)height = _defaultHeight;
 		}
 		
 		
@@ -222,5 +284,51 @@ package com.bit101.components
             _tf.tabEnabled = value;
         }
 
+		public function get boxSkin():Bitmap
+		{
+			return _boxSkin;
+		}
+
+		public function set boxSkin(value:Bitmap):void
+		{
+			_hasSkin = true;
+			var point:Point = new Point();
+			if(value){
+				_boxSkinData = value.bitmapData;
+				_boxSkin = new Bitmap();
+				_boxSkin.bitmapData = new BitmapData(value.width,value.height);
+				_boxSkin.bitmapData.copyPixels(value.bitmapData,new Rectangle(0 , 0, value.width, value.height),point);
+			}
+		}
+
+		public function get sizeNoScale():Boolean
+		{
+			return _sizeNoScale;
+		}
+
+		public function set sizeNoScale(value:Boolean):void
+		{
+			_sizeNoScale = value;
+		}
+
+		public function get showMode():String
+		{
+			return _showMode;
+		}
+
+		public function set showMode(value:String):void
+		{
+			_showMode = value;
+		}
+
+		public function get changeByTextheight():Boolean
+		{
+			return _changeByTextheight;
+		}
+
+		public function set changeByTextheight(value:Boolean):void
+		{
+			_changeByTextheight = value;
+		}
 	}
 }
