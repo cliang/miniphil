@@ -28,10 +28,13 @@
  
 package com.bit101.components
 {
+	import flash.display.Bitmap;
+	import flash.display.BitmapData;
 	import flash.display.DisplayObjectContainer;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	
 	[Event(name="change", type="flash.events.Event")]
@@ -45,6 +48,11 @@ package com.bit101.components
 		protected var _min:Number = 0;
 		protected var _orientation:String;
 		protected var _tick:Number = 0.01;
+		protected var _backSkinData:BitmapData;
+		protected var _handleSkinData:BitmapData;
+		protected var _backSkin:Bitmap;
+		protected var _handleSkin:Bitmap;
+		protected var _spaceNum:int;
 		
 		public static const HORIZONTAL:String = "horizontal";
 		public static const VERTICAL:String = "vertical";
@@ -57,10 +65,10 @@ package com.bit101.components
 		 * @param ypos The y position to place this component.
 		 * @param defaultHandler The event handling function to handle the default event for this component (change in this case).
 		 */
-		public function Slider(orientation:String = Slider.HORIZONTAL, parent:DisplayObjectContainer = null, xpos:Number = 0, ypos:Number =  0, defaultHandler:Function = null)
+		public function Slider(orientation:String = Slider.HORIZONTAL,defaultHandler:Function = null)
 		{
 			_orientation = orientation;
-			super(parent, xpos, ypos);
+			super();
 			if(defaultHandler != null)
 			{
 				addEventListener(Event.CHANGE, defaultHandler);
@@ -73,15 +81,8 @@ package com.bit101.components
 		override protected function init():void
 		{
 			super.init();
-
-			if(_orientation == HORIZONTAL)
-			{
-				setSize(100, 10);
-			}
-			else
-			{
-				setSize(10, 100);
-			}
+			_back = new Sprite();
+			_handle = new Sprite();
 		}
 		
 		/**
@@ -89,16 +90,71 @@ package com.bit101.components
 		 */
 		override protected function addChildren():void
 		{
-			_back = new Sprite();
 			_back.filters = [getShadow(2, true)];
 			addChild(_back);
 			
-			_handle = new Sprite();
 			_handle.filters = [getShadow(1)];
 			_handle.addEventListener(MouseEvent.MOUSE_DOWN, onDrag);
 			_handle.buttonMode = true;
 			_handle.useHandCursor = true;
 			addChild(_handle);
+			
+			
+			_max = Math.max(_backSkin.width,_backSkin.height);
+			_max = _max - _spaceNum * 2;
+
+			_back.addChild(_backSkin);
+			if(_orientation == HORIZONTAL)
+			{
+				if(_backSkin.height > _backSkin.width){
+					_backSkin.rotation = -90;
+					_backSkin.y = _backSkin.height;
+				}
+			}
+			else
+			{
+				if(_backSkin.width > _backSkin.height){
+					_backSkin.rotation = 90;
+					_backSkin.x = _backSkin.width;
+				}
+			}
+			
+			
+			_handle.addChild(_handleSkin);
+			if(_orientation == HORIZONTAL)
+			{
+				if(_handleSkin.height > _handleSkin.width){
+					_handleSkin.rotation = -90;
+					_handleSkin.y = _handleSkin.height;
+				}
+				_handleSkin.y = _handleSkin.y + _backSkin.height/2 -_handleSkin.height /2 ;
+			}
+			else
+			{
+				if(_handleSkin.width > _handleSkin.height){
+					_handleSkin.rotation = 90;
+						_handleSkin.x = _handleSkin.width;
+				}
+				_handleSkin.x = _handleSkin.x + _backSkin.width / 2 - _handleSkin.width / 2;
+			}
+			
+			
+			if(!_backSkin||!_handleSkin){
+				if(_orientation == HORIZONTAL)
+				{
+					setSize(100, 10);
+				}
+				else
+				{
+					setSize(10, 100);
+				}
+			}
+			else{
+				trace(height,_backSkin.height,_handleSkin.height);
+				this.height =Math.max(height, _backSkin.height,_handleSkin.height);
+				this.width = Math.max(width,_backSkin.width,_handleSkin.width);
+				trace(height,_backSkin.height,_handleSkin.height);
+			}
 		}
 		
 		/**
@@ -106,10 +162,13 @@ package com.bit101.components
 		 */
 		protected function drawBack():void
 		{
-			_back.graphics.clear();
-			_back.graphics.beginFill(Style.BACKGROUND);
-			_back.graphics.drawRect(0, 0, _width, _height);
-			_back.graphics.endFill();
+			if(!_backSkin){
+				_back.graphics.clear();
+				_back.graphics.beginFill(Style.BACKGROUND);
+				_back.graphics.drawRect(0, 0, _width, _height);
+				_back.graphics.endFill();
+			}
+			
 
 			if(_backClick)
 			{
@@ -126,22 +185,24 @@ package com.bit101.components
 		 */
 		protected function drawHandle():void
 		{	
-			_handle.graphics.clear();
-			_handle.graphics.beginFill(Style.BUTTON_FACE);
-			if(_orientation == HORIZONTAL)
-			{
-				_handle.graphics.drawRect(1, 1, _height - 2, _height - 2);
+			if(!_handleSkin){
+				_handle.graphics.clear();
+				_handle.graphics.beginFill(Style.BUTTON_FACE);
+				if(_orientation == HORIZONTAL)
+				{
+					_handle.graphics.drawRect(1, 1, _height - 2, _height - 2);
+				}
+				else
+				{
+					_handle.graphics.drawRect(1, 1, _width - 2, _width - 2);
+				}
+				_handle.graphics.endFill();
 			}
-			else
-			{
-				_handle.graphics.drawRect(1, 1, _width - 2, _width - 2);
-			}
-			_handle.graphics.endFill();
 			positionHandle();
 		}
 		
 		/**
-		 * Adjusts value to be within minimum and maximum.
+		 * _value取最大与最小的中间值
 		 */
 		protected function correctValue():void
 		{
@@ -166,13 +227,19 @@ package com.bit101.components
 			var range:Number;
 			if(_orientation == HORIZONTAL)
 			{
+				if(!_handleSkin)
 				range = _width - _height;
+				else 
+					range = _width - _handle.width;
 				_handle.x = (_value - _min) / (_max - _min) * range;
 			}
 			else
 			{
+				if(!_backSkin)
 				range = _height - _width;
-				_handle.y = _height - _width - (_value - _min) / (_max - _min) * range;
+				else 
+					range = _height - _handle.height;
+				_handle.y =(_value - _min) / (_max - _min) * range;
 			}
 		}
 		
@@ -245,13 +312,25 @@ package com.bit101.components
 		{
 			stage.addEventListener(MouseEvent.MOUSE_UP, onDrop);
 			stage.addEventListener(MouseEvent.MOUSE_MOVE, onSlide);
-			if(_orientation == HORIZONTAL)
-			{
-				_handle.startDrag(false, new Rectangle(0, 0, _width - _height, 0));
+			if(!_handleSkin){
+				if(_orientation == HORIZONTAL)
+				{
+					_handle.startDrag(false, new Rectangle(0, 0, _width - _height, 0));
+				}
+				else
+				{
+					_handle.startDrag(false, new Rectangle(0, 0, 0, _height - _width));
+				}
 			}
-			else
-			{
-				_handle.startDrag(false, new Rectangle(0, 0, 0, _height - _width));
+			else {
+				if(_orientation == HORIZONTAL)
+				{
+					_handle.startDrag(false, new Rectangle(_spaceNum, 0, _max - _handleSkin.width, 0));
+				}
+				else
+				{trace( _height, _handleSkin.height);
+					_handle.startDrag(false, new Rectangle(0, _spaceNum, 0, _max - _handleSkin.height));
+				}
 			}
 		}
 		
@@ -275,11 +354,11 @@ package com.bit101.components
 			var oldValue:Number = _value;
 			if(_orientation == HORIZONTAL)
 			{
-				_value = _handle.x / (width - _height) * (_max - _min) + _min;
+				_value = _handle.x / (width - _handleSkin.width) * (_max - _min) + _min;
 			}
 			else
 			{
-				_value = (_height - _width - _handle.y) / (height - _width) * (_max - _min) + _min;
+				_value = (_height - _handleSkin.height - _handle.y) / (height - _handleSkin.height) * (_max - _min) + _min;
 			}
 			if(_value != oldValue)
 			{
@@ -369,6 +448,39 @@ package com.bit101.components
 		{
 			return _tick;
 		}
+
+		public function set backSkin(value:Bitmap):void
+		{
+			if(!value) return;
+			_backSkin = value;
+			_backSkinData = value.bitmapData;
+			var point:Point = new Point();
+			_backSkin = new Bitmap();
+			_backSkin.bitmapData = new BitmapData(value.width,value.height);
+			_backSkin.bitmapData.copyPixels(value.bitmapData,new Rectangle(0 , 0, value.width, value.height),point);
+		}
+
+		public function set handleSkin(value:Bitmap):void
+		{
+			if(!value) return;
+			_handleSkin = value;
+			_handleSkinData = value.bitmapData;
+			var point:Point = new Point();
+			_handleSkin = new Bitmap();
+			_handleSkin.bitmapData = new BitmapData(value.width,value.height);
+			_handleSkin.bitmapData.copyPixels(value.bitmapData,new Rectangle(0 , 0, value.width, value.height),point);
+		}
+
+		public function get spaceNum():int
+		{
+			return _spaceNum;
+		}
+
+		public function set spaceNum(value:int):void
+		{
+			_spaceNum = value;
+		}
+
 		
 	}
 }

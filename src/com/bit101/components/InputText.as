@@ -49,7 +49,7 @@ package com.bit101.components
 		protected var _defaultHandler:Function;
 		protected var _sizeNoScale:Boolean;
 		protected var _showMode:String;
-		protected var _changeByTextheight:Boolean = true;//外框的高度更随文字的高度改变   在_showMode为多行的时候可用
+		protected var _showAll:Boolean;//外框的高度更随文字的高度改变   在_showMode为多行的时候可用
 		protected var _defaultHeight:int;
 		
 		public static var ONELINE:String = "oneline";//单行输入
@@ -67,13 +67,7 @@ package com.bit101.components
 		{
 			this.text = text;
 			_defaultHandler = defaultHandler;
-			this.addEventListener(Event.ADDED_TO_STAGE,onadded);
-		}
-		
-		private function onadded(e:Event):void{
-			this.removeEventListener(Event.ADDED_TO_STAGE,onadded);
-			this.addChildren();
-			this.draw();
+			super();
 		}
 		
 		/**
@@ -202,9 +196,9 @@ package com.bit101.components
 			event.stopImmediatePropagation();
 			dispatchEvent(event);
 			
-			if(_tf.textHeight + _tf.y*2 > height&&changeByTextheight)
+			if(_tf.textHeight + _tf.y*2 > height&&showAll)
 				height = _tf.textHeight + _tf.y*2 + 4;
-			else if(_tf.textHeight + _tf.y*2 < height&&changeByTextheight&&height>_defaultHeight)
+			else if(_tf.textHeight + _tf.y*2 < height&&showAll&&height>_defaultHeight)
 				height = _tf.textHeight + _tf.y*2 + 4;
 				if(height<_defaultHeight)height = _defaultHeight;
 		}
@@ -321,14 +315,14 @@ package com.bit101.components
 			_showMode = value;
 		}
 
-		public function get changeByTextheight():Boolean
+		public function get showAll():Boolean
 		{
-			return _changeByTextheight;
+			return _showAll;
 		}
 
-		public function set changeByTextheight(value:Boolean):void
+		public function set showAll(value:Boolean):void
 		{
-			_changeByTextheight = value;
+			_showAll = value;
 		}
 	}
 }

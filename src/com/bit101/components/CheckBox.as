@@ -65,12 +65,6 @@ package com.bit101.components
 			super();
 		}
 		
-		public function onadded(e:Event):void{
-			this.removeEventListener(Event.ADDED_TO_STAGE,onadded);
-			this.addChildren();
-			this.draw();
-		}
-		
 		/**
 		 * Initializes the component.
 		 */

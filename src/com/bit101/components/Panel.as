@@ -65,13 +65,7 @@ package com.bit101.components
 		 */
 		public function Panel()
 		{
-			this.addEventListener(Event.ADDED_TO_STAGE,onadded);
-		}
-		
-		private function onadded(e:Event):void{
-			this.removeEventListener(Event.ADDED_TO_STAGE,onadded);
-			this.addChildren();
-			this.draw();
+			super();
 		}
 		
 		

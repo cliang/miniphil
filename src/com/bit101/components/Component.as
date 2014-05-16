@@ -78,12 +78,14 @@ package com.bit101.components
 		 */
 		public function Component(parent:DisplayObjectContainer = null, xpos:Number = 0, ypos:Number =  0)
 		{
-			move(xpos, ypos);
 			init();
-			if(parent != null)
-			{
-				parent.addChild(this);
-			}
+			this.addEventListener(Event.ADDED_TO_STAGE,onadded);
+		}
+		
+		public function onadded(e:Event):void{
+			this.removeEventListener(Event.ADDED_TO_STAGE,onadded);
+			this.addChildren();
+			this.draw();
 		}
 		
 		/**
@@ -91,8 +93,7 @@ package com.bit101.components
 		 */
 		protected function init():void
 		{
-			addChildren();
-			invalidate();
+			
 		}
 		
 		/**
@@ -220,6 +221,8 @@ package com.bit101.components
 		 */
 		public function draw():void
 		{
+			if(hasEventListener(Event.ENTER_FRAME))
+			removeEventListener(Event.ENTER_FRAME, onInvalidate);
 			dispatchEvent(new Event(Component.DRAW));
 		}
 		
@@ -235,6 +238,7 @@ package com.bit101.components
 		 */
 		protected function onInvalidate(event:Event):void
 		{
+			if(!hasEventListener(Event.ENTER_FRAME)) return;
 			removeEventListener(Event.ENTER_FRAME, onInvalidate);
 			draw();
 		}

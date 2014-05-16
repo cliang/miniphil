@@ -2,8 +2,10 @@ package
 {
 	import com.bit101.components.CheckBox;
 	import com.bit101.components.InputText;
+	import com.bit101.components.Label;
 	import com.bit101.components.Panel;
 	import com.bit101.components.PushButton;
+	import com.bit101.components.Slider;
 	import com.bit101.components.Style;
 	import com.bit101.components.Window;
 	
@@ -34,6 +36,10 @@ package
 		private var Back2:Class;
 		[Embed(source = "box1.png")]
 		private var Box1:Class;
+		[Embed(source = "bar.png")]
+		private var Bar:Class;
+		[Embed(source = "barBack.png")]
+		private var BarBack:Class;
 		
 		private var myStarling:Starling;   
 		
@@ -111,6 +117,16 @@ package
 			input.textField.y = 10;
 			input.showMode = InputText.WRAPLINE;
 			addChild(input);
+			
+			var lab:Label = new Label("agdsga");
+			panel.addChild(lab);
+			
+			var slider:Slider = new Slider(Slider.VERTICAL);
+			slider.move(110,110);
+			slider.backSkin = new BarBack as  Bitmap;
+			slider.handleSkin =  new Bar as  Bitmap;
+			slider.spaceNum = 10;
+			addChild(slider);
 		}
 		var input:InputText;
 		private function onchange(e):void{

@@ -65,11 +65,16 @@ package com.bit101.components
 		public function ScrollBar(orientation:String, parent:DisplayObjectContainer=null, xpos:Number=0, ypos:Number=0, defaultHandler:Function = null)
 		{
 			_orientation = orientation;
-			super(parent, xpos, ypos);
+			super();
 			if(defaultHandler != null)
 			{
 				addEventListener(Event.CHANGE, defaultHandler);
 			}
+		}
+		
+		override protected function init():void
+		{
+			
 		}
 		
 		/**
@@ -388,7 +393,7 @@ class ScrollSlider extends Slider
 	 */
 	public function ScrollSlider(orientation:String, parent:DisplayObjectContainer=null, xpos:Number=0, ypos:Number=0, defaultHandler:Function = null)
 	{
-		super(orientation, parent, xpos, ypos);
+		super();
 		if(defaultHandler != null)
 		{
 			addEventListener(Event.CHANGE, defaultHandler);

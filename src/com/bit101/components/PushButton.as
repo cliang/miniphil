@@ -80,14 +80,7 @@ package com.bit101.components
 				addEventListener(MouseEvent.MOUSE_OVER, overHandler);
 			}
 			this._labelText = label;//原来this._label= label;触发draw
-			this.addEventListener(Event.ADDED_TO_STAGE,onadded);
 			super();
-		}
-		
-		public function onadded(e:Event):void{
-			this.removeEventListener(Event.ADDED_TO_STAGE,onadded);
-			this.addChildren();
-			this.draw();
 		}
 		
 		

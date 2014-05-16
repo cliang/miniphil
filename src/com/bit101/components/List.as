@@ -66,7 +66,7 @@ package com.bit101.components
 			{
 				_items = new Array();
 			}
-			super(parent, xpos, ypos);
+			super();
 		}
 		
 		/**

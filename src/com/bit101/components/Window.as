@@ -81,14 +81,7 @@ package com.bit101.components
 		public function Window(title:String="Window")
 		{
 			_title = title;
-			this.addEventListener(Event.ADDED_TO_STAGE,onadded);
 			super();
-		}
-		
-		public function onadded(e:Event):void{
-			this.removeEventListener(Event.ADDED_TO_STAGE,onadded);
-			this.addChildren();
-			this.draw();
 		}
 		
 		/**

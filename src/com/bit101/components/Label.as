@@ -52,13 +52,7 @@ package com.bit101.components
 		public function Label(text:String = "")
 		{
 			this.text = text;
-			this.addEventListener(Event.ADDED_TO_STAGE,onadded);
-		}
-		
-		public function onadded(e:Event):void{
-			this.removeEventListener(Event.ADDED_TO_STAGE,onadded);
-			this.addChildren();
-			this.draw();
+			super();
 		}
 		
 		/**
